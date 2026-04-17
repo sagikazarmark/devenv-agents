@@ -17,9 +17,11 @@
     };
   };
 
-  outputs = { self, ... }: {
-    # Expose the module for flake-native consumers. The primary distribution
-    # path is `devenv.yaml` imports (see README).
-    devenvModules.default = ./modules/agents.nix;
-  };
+  outputs =
+    { ... }:
+    {
+      # Expose the module for flake-native consumers. The primary distribution
+      # path is `devenv.yaml` imports (see README).
+      devenvModules.default = ./modules/agents.nix;
+    };
 }
