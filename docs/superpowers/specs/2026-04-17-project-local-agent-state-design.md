@@ -45,8 +45,10 @@ both inside and outside the devenv shell.
   This design is orthogonal and does not overlap with it. The README should
   briefly point users at the upstream integration.
 - **Hybrid state layouts** (relocating only credentials, or only session
-  history). All supported env vars move everything together; we do not try
-  to paper over that.
+  history). Some agents expose finer-grained overrides (e.g. codex's
+  `CODEX_SQLITE_HOME` for just the state DB); we ignore those and use the
+  single top-level env var that moves everything. Keeping a uniform "one
+  dir per agent" mental model is worth more than the flexibility.
 - **Making the target path user-configurable.** Deliberately one convention.
   If that turns out to be wrong later, adding configurability is a
   backwards-compatible change; removing it is not.
@@ -215,6 +217,25 @@ The only new failure mode is asking for `projectLocal = true` on an
 unsupported agent. This is a static configuration error and must fail at
 evaluation time (via `assert` or `throw` in the module), not at runtime.
 
+## Risks to verify during implementation
+
+- **Garbage collection.** If `devenv gc` or `nix-collect-garbage` prunes
+  anything under `.devenv/state/`, the user's auth tokens and session
+  history get wiped without warning — breaking the feature the first time
+  a user runs GC. The implementation plan must verify GC behavior against
+  `.devenv/state/agents/<name>/` on a real devenv install before we ship.
+  If GC does touch that path, we need either a different location, a
+  documented caveat, or a GC-exclusion mechanism.
+- **Gitignore coverage.** The spec assumes `.devenv/` is conventionally
+  gitignored by devenv itself. Verify on a fresh project; if not, the
+  implementation must add `.devenv/` to the repo's gitignore or document
+  that users must do so.
+- **Full scope of `CLAUDE_CONFIG_DIR`.** Docs explicitly list settings,
+  credentials, session history, and plugins. Verify that `projects/`,
+  `todos/`, user-level `agents/`, and user-level `commands/` also relocate
+  — otherwise the claim "moves everything" in the option description is
+  misleading and needs softening.
+
 ## Testing
 
 The repo currently has no `checks/` or `tests/` directory — coverage today
@@ -242,9 +263,9 @@ Regardless of harness, the cases to cover are:
   `enterShell` lines are produced — verified by diffing against a baseline
   module evaluation.
 - Shell-level smoke check: in a configuration with
-  `agents.claude.projectLocal = true`, `devenv shell -c env` includes
-  `CLAUDE_CONFIG_DIR=$DEVENV_ROOT/.devenv/state/agents/claude` and that
-  directory exists on disk.
+  `agents.claude.projectLocal = true`, `devenv shell -c env` prints a
+  `CLAUDE_CONFIG_DIR` whose value is an absolute path ending in
+  `.devenv/state/agents/claude`, and that directory exists on disk.
 
 ## Documentation
 
