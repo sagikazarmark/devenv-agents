@@ -63,3 +63,94 @@ jobs:
       - name: Build example shell
         working-directory: examples/default
         run: devenv build shell
+
+  example-project-local:
+    name: Example (project-local)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@616559265b40713947b9c190a8ff4b507b5df49b # v31.10.4
+        with:
+          github_access_token: ${{ github.token }}
+
+      - name: Configure cachix
+        uses: cachix/cachix-action@1eb2ef646ac0255473d23a5907ad7b04ce94065c # v17
+        with:
+          name: devenv
+
+      - name: Install devenv
+        shell: bash
+        run: nix profile add --accept-flake-config github:cachix/devenv/latest#devenv
+        env:
+          NIX_CONFIG: "accept-flake-config = true"
+
+      - name: Build example shell
+        working-directory: examples/project-local
+        run: devenv build shell
+
+      - name: Smoke-test env vars
+        working-directory: examples/project-local
+        run: |
+          devenv shell -- bash -c '
+            set -euo pipefail
+            for var in CLAUDE_CONFIG_DIR CODEX_HOME GEMINI_CLI_HOME; do
+              val="${!var}"
+              [ -n "$val" ] || { echo "$var not set"; exit 1; }
+              [ -d "$val" ] || { echo "$var directory missing: $val"; exit 1; }
+              case "$val" in
+                "$PWD/.devenv/state/agents/claude"|"$PWD/.devenv/state/agents/codex"|"$PWD/.devenv/state/agents/gemini") ;;
+                *) echo "$var has unexpected path: $val (expected under $PWD)"; exit 1 ;;
+              esac
+            done
+            echo "all env vars set and directories exist"
+          '
+
+  example-project-local-unsupported:
+    name: Example (project-local, unsupported agent)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Install Nix
+        uses: cachix/install-nix-action@616559265b40713947b9c190a8ff4b507b5df49b # v31.10.4
+        with:
+          github_access_token: ${{ github.token }}
+
+      - name: Configure cachix
+        uses: cachix/cachix-action@1eb2ef646ac0255473d23a5907ad7b04ce94065c # v17
+        with:
+          name: devenv
+
+      - name: Install devenv
+        shell: bash
+        run: nix profile add --accept-flake-config github:cachix/devenv/latest#devenv
+        env:
+          NIX_CONFIG: "accept-flake-config = true"
+
+      - name: Assert build fails with expected assertion message
+        working-directory: examples/project-local-unsupported
+        shell: bash
+        run: |
+          set +e
+          output=$(devenv build shell 2>&1)
+          rc=$?
+          set -e
+          if [ $rc -eq 0 ]; then
+            echo "ERROR: expected 'devenv build shell' to fail, but it succeeded"
+            echo "--- output ---"
+            echo "$output"
+            exit 1
+          fi
+          if ! echo "$output" | grep -qF "projectLocal = true is not yet supported"; then
+            echo "ERROR: expected assertion message not found in output"
+            echo "--- output ---"
+            echo "$output"
+            exit 1
+          fi
+          echo "build failed as expected with correct assertion message"
