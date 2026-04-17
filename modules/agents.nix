@@ -104,9 +104,8 @@ in
         message = ''
           agents.${name}.projectLocal = true is not yet supported:
           ${name} has no single environment variable that relocates both
-          config and auth. See
-          docs/superpowers/specs/2026-04-17-project-local-agent-state-design.md
-          — leave projectLocal = false for now.
+          config and auth. See the "Per-project agent state" section of
+          the README — leave projectLocal = false for now.
         '';
       })
       agents;
