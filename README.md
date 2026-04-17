@@ -1,5 +1,9 @@
 # devenv-agents
 
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/sagikazarmark/devenv-agents/ci.yaml?style=flat-square)](https://github.com/sagikazarmark/devenv-agents/actions/workflows/ci.yaml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/sagikazarmark/devenv-agents/badge?style=flat-square)](https://securityscorecards.dev/viewer/?uri=github.com/sagikazarmark/devenv-agents)
+[![built with nix](https://img.shields.io/badge/builtwith-nix-7d81f7?style=flat-square)](https://builtwithnix.org)
+
 A reusable [devenv](https://devenv.sh) module for AI coding agents,
 backed by [numtide/llm-agents.nix](https://github.com/numtide/llm-agents.nix).
 
