@@ -1,7 +1,7 @@
 # devenv-agents
 
-A reusable [devenv](https://devenv.sh) module for AI coding agents, backed by
-[numtide/llm-agents.nix](https://github.com/numtide/llm-agents.nix).
+A reusable [devenv](https://devenv.sh) module for AI coding agents,
+backed by [numtide/llm-agents.nix](https://github.com/numtide/llm-agents.nix).
 
 ## Usage
 
@@ -23,8 +23,9 @@ imports:
   - devenv-agents
 ```
 
-> `llm-agents` must be declared in your own `devenv.yaml` — devenv does not
-> resolve it transitively from this module's flake.
+> [!IMPORTANT]
+> `llm-agents` must be declared in your own `devenv.yaml`.
+> devenv does not resolve it transitively from this module's flake.
 
 Then enable the agents you want in `devenv.nix`:
 
@@ -36,7 +37,7 @@ Then enable the agents you want in `devenv.nix`:
 }
 ```
 
-Run `devenv shell` and the enabled agents are on `PATH`.
+Run `devenv shell`.
 
 ## Supported agents
 
@@ -65,29 +66,23 @@ different build (for example, the version from your own nixpkgs):
 
 ## Binary cache
 
-`llm-agents.nix` publishes pre-built binaries at
-[`cache.numtide.com`](https://cache.numtide.com). This flake declares the cache
-in its `nixConfig`, so if your Nix user is in `trusted-users` (or you pass
-`--accept-flake-config`) it's picked up automatically.
+`llm-agents.nix` publishes pre-built binaries at [`cache.numtide.com`](https://cache.numtide.com).
+This flake declares the cache in its `nixConfig`, so if your Nix user is in `trusted-users`
+(or you pass `--accept-flake-config`) it's picked up automatically.
 
-Otherwise Nix prints *"ignoring untrusted flake configuration setting"* and
-falls back to building from source. To opt in permanently, add the cache to
-your Nix configuration:
+Otherwise Nix prints *"ignoring untrusted flake configuration setting"*
+and falls back to building from source. To opt in permanently,
+add the cache to your Nix configuration:
 
 ```
 extra-substituters = https://cache.numtide.com
 extra-trusted-public-keys = niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g=
 ```
 
-## How it works
-
-Each option adds its `package` to the devshell's `packages` list when `enable`
-is true. Default packages come from `inputs.llm-agents.packages.${system}.*`.
-
 ## Example
 
-See [`examples/default/`](./examples/default/) for a minimal working consumer.
+See [`examples/default/`](./examples/default/) for a minimal working example.
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+The project is licensed under the [MIT License](LICENSE).
