@@ -195,9 +195,11 @@ The config section then, for each enabled agent with `projectLocal = true`:
 
 1. Asserts `configDirEnvVar != null`; otherwise throws the evaluation error
    above.
-2. Computes `path = "${config.devenv.root}/.devenv/state/agents/${name}"`
-   where `name` is the attribute name bound by `lib.mapAttrs` (e.g.
-   `"claude"`).
+2. Computes `path = "${stateRoot}/agents/${name}"` where `stateRoot` is
+   `config.devenv.state` if devenv exposes that attribute (preferred, so
+   we auto-follow any upstream convention change) or
+   `"${config.devenv.root}/.devenv/state"` as a fallback, and `name` is
+   the attribute name bound by `lib.mapAttrs` (e.g. `"claude"`).
 3. Adds `env.<VAR> = path;` to the devenv shell environment.
 4. Adds an `enterShell` snippet that runs `mkdir -p "$path"` so the first
    invocation of the agent does not fail on a missing directory.
@@ -268,8 +270,9 @@ Regardless of harness, the cases to cover are:
 - Enabling `projectLocal` on `opencode` or `pi` fails at evaluation with the
   documented error message.
 - With `projectLocal = false` (the default), no env-var additions or
-  `enterShell` lines are produced — verified by diffing against a baseline
-  module evaluation.
+  `enterShell` lines are produced — verified by evaluating the module with
+  the option explicitly `false` and again with the option unset, and
+  asserting the resulting `env` and `enterShell` attrs are identical.
 - Shell-level smoke check: in a configuration with
   `agents.claude.projectLocal = true`, `devenv shell -c env` prints a
   `CLAUDE_CONFIG_DIR` whose value is an absolute path ending in
