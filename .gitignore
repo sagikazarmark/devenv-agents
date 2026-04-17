@@ -1,0 +1,7 @@
+.devenv*
+.direnv
+/devenv.local.nix
+
+# Nix
+result
+result-*
