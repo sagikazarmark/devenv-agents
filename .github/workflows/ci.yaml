@@ -23,7 +23,7 @@ jobs:
           github_access_token: ${{ github.token }}
 
       - name: Configure cachix
-        uses: cachix/cachix-action@a593539ec5b1ba1eb95f89a396efd45ca2cdaf5d # v16
+        uses: cachix/cachix-action@1eb2ef646ac0255473d23a5907ad7b04ce94065c # v17
         with:
           name: devenv
 
@@ -50,7 +50,7 @@ jobs:
           github_access_token: ${{ github.token }}
 
       - name: Configure cachix
-        uses: cachix/cachix-action@a593539ec5b1ba1eb95f89a396efd45ca2cdaf5d # v16
+        uses: cachix/cachix-action@1eb2ef646ac0255473d23a5907ad7b04ce94065c # v17
         with:
           name: devenv
 
