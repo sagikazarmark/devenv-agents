@@ -106,6 +106,10 @@ inside this shell. You will be re-prompted to log in the first time.
 
 Setting `projectLocal = true` for an unsupported agent fails at evaluation.
 
+`projectLocal = true` sets the agent's config-dir env var for you. Manually
+setting the same variable elsewhere (e.g. `env.CLAUDE_CONFIG_DIR = ...`)
+will collide with this option — pick one or the other.
+
 ### Related: project-level committed config
 
 This option handles *per-user* state. For *project-level* configuration

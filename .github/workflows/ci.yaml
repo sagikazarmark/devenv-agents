@@ -97,16 +97,19 @@ jobs:
         run: |
           devenv shell -- bash -c '
             set -euo pipefail
-            for var in CLAUDE_CONFIG_DIR CODEX_HOME GEMINI_CLI_HOME; do
+            declare -A expected=(
+              [CLAUDE_CONFIG_DIR]="$PWD/.devenv/state/agents/claude"
+              [CODEX_HOME]="$PWD/.devenv/state/agents/codex"
+              [GEMINI_CLI_HOME]="$PWD/.devenv/state/agents/gemini"
+            )
+            for var in "${!expected[@]}"; do
               val="${!var}"
+              want="${expected[$var]}"
               [ -n "$val" ] || { echo "$var not set"; exit 1; }
+              [ "$val" = "$want" ] || { echo "$var: want $want, got $val"; exit 1; }
               [ -d "$val" ] || { echo "$var directory missing: $val"; exit 1; }
-              case "$val" in
-                "$PWD/.devenv/state/agents/claude"|"$PWD/.devenv/state/agents/codex"|"$PWD/.devenv/state/agents/gemini") ;;
-                *) echo "$var has unexpected path: $val (expected under $PWD)"; exit 1 ;;
-              esac
             done
-            echo "all env vars set and directories exist"
+            echo "all env vars set to expected paths and directories exist"
           '
 
   example-project-local-unsupported:
