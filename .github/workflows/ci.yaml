@@ -102,8 +102,8 @@ jobs:
               [ -n "$val" ] || { echo "$var not set"; exit 1; }
               [ -d "$val" ] || { echo "$var directory missing: $val"; exit 1; }
               case "$val" in
-                */.devenv/state/agents/claude|*/.devenv/state/agents/codex|*/.devenv/state/agents/gemini) ;;
-                *) echo "$var has unexpected suffix: $val"; exit 1 ;;
+                "$PWD/.devenv/state/agents/claude"|"$PWD/.devenv/state/agents/codex"|"$PWD/.devenv/state/agents/gemini") ;;
+                *) echo "$var has unexpected path: $val (expected under $PWD)"; exit 1 ;;
               esac
             done
             echo "all env vars set and directories exist"
