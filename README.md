@@ -68,6 +68,52 @@ different build (for example, the version from your own nixpkgs):
 }
 ```
 
+## Per-project agent state
+
+By default each agent stores its per-user state (config, credentials,
+session history) in a well-known global directory: `~/.claude`, `~/.codex`,
+`~/.gemini`, etc. This is usually what you want — one login works across
+all your projects.
+
+For multi-account setups, ephemeral environments (CI, devcontainers,
+throwaway worktrees), or per-project experimentation, set `projectLocal`
+on the agent to relocate its state into the project tree:
+
+```nix
+{ ... }:
+{
+  agents.claude = {
+    enable = true;
+    projectLocal = true;
+  };
+}
+```
+
+The state moves to `$DEVENV_ROOT/.devenv/state/agents/<name>`, which is
+gitignored by devenv. Caveat: the user-level config in your global home
+(Claude plugins, custom sub-agents, `CLAUDE.md`, etc.) is **not** visible
+inside this shell. You will be re-prompted to log in the first time.
+
+### Supported agents
+
+| Agent    | Env var             | Supported |
+| -------- | ------------------- | --------- |
+| claude   | `CLAUDE_CONFIG_DIR` | yes       |
+| codex    | `CODEX_HOME`        | yes       |
+| gemini   | `GEMINI_CLI_HOME`   | yes (the CLI creates a `.gemini/` subdirectory inside the pointed-at path) |
+| opencode | —                   | not yet (opencode has no single env var that relocates both config and auth) |
+| pi       | —                   | not yet   |
+
+Setting `projectLocal = true` for an unsupported agent fails at evaluation.
+
+### Related: project-level committed config
+
+This option handles *per-user* state. For *project-level* configuration
+that should be committed to git (hooks, sub-agents, MCP servers, slash
+commands, `CLAUDE.md`), see the official
+[`claude.code.*` devenv integration](https://devenv.sh/integrations/claude-code/).
+The two are complementary and can be used together.
+
 ## Binary cache
 
 `llm-agents.nix` publishes pre-built binaries at [`cache.numtide.com`](https://cache.numtide.com).
