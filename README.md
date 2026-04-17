@@ -66,8 +66,13 @@ different build (for example, the version from your own nixpkgs):
 ## Binary cache
 
 `llm-agents.nix` publishes pre-built binaries at
-[`cache.numtide.com`](https://cache.numtide.com). To avoid building agents from
-source, add the cache to your Nix configuration:
+[`cache.numtide.com`](https://cache.numtide.com). This flake declares the cache
+in its `nixConfig`, so if your Nix user is in `trusted-users` (or you pass
+`--accept-flake-config`) it's picked up automatically.
+
+Otherwise Nix prints *"ignoring untrusted flake configuration setting"* and
+falls back to building from source. To opt in permanently, add the cache to
+your Nix configuration:
 
 ```
 extra-substituters = https://cache.numtide.com
