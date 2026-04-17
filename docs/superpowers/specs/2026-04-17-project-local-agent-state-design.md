@@ -25,10 +25,10 @@ wrong:
   plugin set, or sub-agent definition without polluting global state.
 
 `devenv` already provides a conventional location for per-project state:
-`$DEVENV_STATE` (`$DEVENV_ROOT/.devenv/state`), which is gitignored. Several
-of the supported agents (not all — see the env var mapping below) expose a
-single environment variable that relocates their per-user state. Wiring
-these together is a good fit for this module.
+`$DEVENV_STATE` (`$DEVENV_ROOT/.devenv/state`), conventionally gitignored
+(see Risks below). Several of the supported agents (not all — see the env
+var mapping below) expose a single environment variable that relocates
+their per-user state. Wiring these together is a good fit for this module.
 
 It is **not** the right default: the common case is a single developer with a
 single global login across projects. Making it default would force re-auth on
@@ -152,8 +152,14 @@ projectLocal = false for now.
 
 ### Implementation shape
 
-In `modules/agents.nix`, extend the `agents` attrset used to generate
-submodules with each agent's env-var name (or `null` to mark unsupported):
+Two changes in `modules/agents.nix`:
+
+1. Extend the `agents` attrset used to generate submodules with each
+   agent's env-var name (or `null` to mark unsupported).
+2. Extend the `mkAgent` helper (which currently takes
+   `{ upstreamName, description }` and returns `{ enable, package }`) to
+   also accept `configDirEnvVar` and add the `projectLocal` option to the
+   submodule it produces.
 
 ```nix
 agents = {
@@ -189,7 +195,9 @@ The config section then, for each enabled agent with `projectLocal = true`:
 
 1. Asserts `configDirEnvVar != null`; otherwise throws the evaluation error
    above.
-2. Computes `path = "${config.devenv.root}/.devenv/state/agents/<name>"`.
+2. Computes `path = "${config.devenv.root}/.devenv/state/agents/${name}"`
+   where `name` is the attribute name bound by `lib.mapAttrs` (e.g.
+   `"claude"`).
 3. Adds `env.<VAR> = path;` to the devenv shell environment.
 4. Adds an `enterShell` snippet that runs `mkdir -p "$path"` so the first
    invocation of the agent does not fail on a missing directory.
