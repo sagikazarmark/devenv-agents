@@ -65,12 +65,48 @@ let
       configDirEnvVar = null;
     };
   };
+
+  projectLocalPath = name: "${config.devenv.state}/agents/${name}";
+
+  activeProjectLocal = lib.filterAttrs
+    (name: _spec:
+      config.agents.${name}.enable && config.agents.${name}.projectLocal)
+    agents;
+
+  activeProjectLocalSupported = lib.filterAttrs
+    (_name: spec: spec.configDirEnvVar != null)
+    activeProjectLocal;
 in
 {
   options.agents = lib.mapAttrs (_name: spec: mkAgent spec) agents;
 
-  config.packages = lib.concatLists (lib.mapAttrsToList
-    (name: _spec:
-      lib.optional config.agents.${name}.enable config.agents.${name}.package)
-    agents);
+  config = {
+    packages = lib.concatLists (lib.mapAttrsToList
+      (name: _spec:
+        lib.optional config.agents.${name}.enable config.agents.${name}.package)
+      agents);
+
+    env = lib.mapAttrs'
+      (name: spec: lib.nameValuePair spec.configDirEnvVar (projectLocalPath name))
+      activeProjectLocalSupported;
+
+    enterShell = lib.concatMapStringsSep "\n"
+      (name: ''mkdir -p "${projectLocalPath name}"'')
+      (lib.attrNames activeProjectLocalSupported);
+
+    assertions = lib.mapAttrsToList
+      (name: spec: {
+        assertion = !(config.agents.${name}.enable
+                   && config.agents.${name}.projectLocal
+                   && spec.configDirEnvVar == null);
+        message = ''
+          agents.${name}.projectLocal = true is not yet supported:
+          ${name} has no single environment variable that relocates both
+          config and auth. See
+          docs/superpowers/specs/2026-04-17-project-local-agent-state-design.md
+          — leave projectLocal = false for now.
+        '';
+      })
+      agents;
+  };
 }
