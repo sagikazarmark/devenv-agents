@@ -95,7 +95,7 @@ jobs:
       - name: Smoke-test env vars
         working-directory: examples/project-local
         run: |
-          devenv shell -c '
+          devenv shell -- bash -c '
             set -euo pipefail
             for var in CLAUDE_CONFIG_DIR CODEX_HOME GEMINI_CLI_HOME; do
               val="${!var}"
