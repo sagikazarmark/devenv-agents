@@ -2,22 +2,47 @@
 
 let
   upstream = inputs.llm-agents.packages.${pkgs.system};
-in
-{
-  options.agents = {
-    claude = {
-      enable = lib.mkEnableOption "the Claude Code coding agent";
 
-      package = lib.mkOption {
-        type = lib.types.package;
-        default = upstream.claude-code;
-        defaultText = lib.literalExpression
-          "inputs.llm-agents.packages.\${pkgs.system}.claude-code";
-        description = "The claude-code package to use.";
-      };
+  mkAgent = { upstreamName, description }: {
+    enable = lib.mkEnableOption description;
+
+    package = lib.mkOption {
+      type = lib.types.package;
+      default = upstream.${upstreamName};
+      defaultText = lib.literalExpression
+        "inputs.llm-agents.packages.\${pkgs.system}.${upstreamName}";
+      description = "The ${upstreamName} package to use.";
     };
   };
 
-  config.packages =
-    lib.optional config.agents.claude.enable config.agents.claude.package;
+  agents = {
+    claude = {
+      upstreamName = "claude-code";
+      description = "the Claude Code coding agent";
+    };
+    codex = {
+      upstreamName = "codex";
+      description = "the OpenAI Codex CLI coding agent";
+    };
+    opencode = {
+      upstreamName = "opencode";
+      description = "the opencode coding agent";
+    };
+    gemini = {
+      upstreamName = "gemini-cli";
+      description = "the Gemini CLI coding agent";
+    };
+    pi = {
+      upstreamName = "pi";
+      description = "the pi-mono coding agent";
+    };
+  };
+in
+{
+  options.agents = lib.mapAttrs (_name: spec: mkAgent spec) agents;
+
+  config.packages = lib.concatLists (lib.mapAttrsToList
+    (name: _spec:
+      lib.optional config.agents.${name}.enable config.agents.${name}.package)
+    agents);
 }
