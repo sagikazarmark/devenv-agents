@@ -66,6 +66,8 @@ let
     };
   };
 
+  # config.devenv.state is declared in devenv's top-level module (defaults to
+  # $DEVENV_ROOT/.devenv/state), so no `or` fallback is needed here.
   projectLocalPath = name: "${config.devenv.state}/agents/${name}";
 
   activeProjectLocal = lib.filterAttrs
