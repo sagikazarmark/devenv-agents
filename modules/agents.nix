@@ -3,7 +3,7 @@
 let
   upstream = inputs.llm-agents.packages.${pkgs.system};
 
-  mkAgent = { upstreamName, description }: {
+  mkAgent = { upstreamName, description, configDirEnvVar }: {
     enable = lib.mkEnableOption description;
 
     package = lib.mkOption {
@@ -19,22 +19,27 @@ let
     claude = {
       upstreamName = "claude-code";
       description = "the Claude Code coding agent";
+      configDirEnvVar = "CLAUDE_CONFIG_DIR";
     };
     codex = {
       upstreamName = "codex";
       description = "the OpenAI Codex CLI coding agent";
+      configDirEnvVar = "CODEX_HOME";
     };
     opencode = {
       upstreamName = "opencode";
       description = "the opencode coding agent";
+      configDirEnvVar = null;
     };
     gemini = {
       upstreamName = "gemini-cli";
       description = "the Gemini CLI coding agent";
+      configDirEnvVar = "GEMINI_CLI_HOME";
     };
     pi = {
       upstreamName = "pi";
       description = "the pi-mono coding agent";
+      configDirEnvVar = null;
     };
   };
 in
