@@ -21,13 +21,14 @@ wrong:
   login for their work repo and their personal repo.
 - **Ephemeral / reproducible environments** (CI, devcontainers, throwaway
   worktrees). Sharing state with `$HOME` defeats the purpose.
-- **Isolation after compromise.** If a project's auth token is leaked,
-  blasting `.devenv/` is a cleaner recovery than editing global state.
+- **Per-project experimentation.** Trying a different model configuration,
+  plugin set, or sub-agent definition without polluting global state.
 
 `devenv` already provides a conventional location for per-project state:
-`$DEVENV_STATE` (`$DEVENV_ROOT/.devenv/state`), which is gitignored. All
-supported agents support relocating their home via an environment variable.
-Wiring these together is a good fit for this module.
+`$DEVENV_STATE` (`$DEVENV_ROOT/.devenv/state`), which is gitignored. Several
+of the supported agents (not all — see the env var mapping below) expose a
+single environment variable that relocates their per-user state. Wiring
+these together is a good fit for this module.
 
 It is **not** the right default: the common case is a single developer with a
 single global login across projects. Making it default would force re-auth on
@@ -122,9 +123,18 @@ $DEVENV_ROOT/.devenv/state/agents/<agent-name>
 |------------|-------------------|---------------------|
 | `claude`   | `CLAUDE_CONFIG_DIR` | supported |
 | `codex`    | `CODEX_HOME`        | supported |
-| `gemini`   | `GEMINI_CLI_HOME`   | supported (gemini creates `.gemini/` inside the pointed-at path) |
+| `gemini`   | `GEMINI_CLI_HOME`   | supported (see note below) |
 | `opencode` | — no single override | **unsupported** — evaluation error |
 | `pi`       | — unknown          | **unsupported** — evaluation error |
+
+**Gemini quirk.** `GEMINI_CLI_HOME` is a *parent* directory; the CLI
+creates a `.gemini/` subdirectory inside it. So for gemini specifically the
+actual data lives at `$DEVENV_ROOT/.devenv/state/agents/gemini/.gemini/`
+— one level deeper than the other agents. We still point
+`GEMINI_CLI_HOME` at `.../agents/gemini` (not `.../agents/`) to keep the
+per-agent namespace clean and avoid gemini scattering `.gemini/` next to
+other agents' directories. README must call this out so users are not
+surprised by the extra nesting.
 
 For agents without a clean single-env-var override, setting
 `projectLocal = true` must produce a descriptive evaluation error naming the
@@ -207,17 +217,34 @@ evaluation time (via `assert` or `throw` in the module), not at runtime.
 
 ## Testing
 
-- **Eval test:** enabling `projectLocal` on `claude`, `codex`, `gemini`
-  evaluates successfully and produces the expected `env` attrs and
-  `enterShell` lines.
-- **Eval test:** enabling `projectLocal` on `opencode` or `pi` fails at
-  evaluation with the documented error message.
-- **Shell-level test (examples/):** extend (or add a sibling to) the
-  existing `examples/default` with a variant that sets
-  `agents.claude.projectLocal = true`; `devenv shell -c env | grep
-  CLAUDE_CONFIG_DIR` prints the expected path, and the directory exists.
-- Default path remains unset (`env` attrs unchanged) when `projectLocal` is
-  left at its `false` default — covered implicitly by the existing example.
+The repo currently has no `checks/` or `tests/` directory — coverage today
+is limited to `examples/default/` evaluating via CI. This design introduces
+evaluation-time branching (the `projectLocal` assertion) that should be
+tested without requiring a running agent. The implementation plan must
+choose one of:
+
+1. **Add a minimal `checks/` attribute** to `flake.nix` that imports
+   `modules/agents.nix` with various option combinations and runs
+   `nix flake check`. Preferred — catches regressions automatically.
+2. **Add sibling examples** under `examples/` covering the projectLocal
+   paths, plus a CI job that runs `devenv shell -c true` on each. Weaker
+   but zero new scaffolding.
+
+Regardless of harness, the cases to cover are:
+
+- Enabling `projectLocal` on `claude`, `codex`, or `gemini` evaluates
+  successfully and produces an `env.<VAR>` attribute pointing at
+  `$DEVENV_ROOT/.devenv/state/agents/<name>` and an `enterShell` line that
+  creates the directory.
+- Enabling `projectLocal` on `opencode` or `pi` fails at evaluation with the
+  documented error message.
+- With `projectLocal = false` (the default), no env-var additions or
+  `enterShell` lines are produced — verified by diffing against a baseline
+  module evaluation.
+- Shell-level smoke check: in a configuration with
+  `agents.claude.projectLocal = true`, `devenv shell -c env` includes
+  `CLAUDE_CONFIG_DIR=$DEVENV_ROOT/.devenv/state/agents/claude` and that
+  directory exists on disk.
 
 ## Documentation
 
