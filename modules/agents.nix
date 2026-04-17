@@ -13,6 +13,29 @@ let
         "inputs.llm-agents.packages.\${pkgs.system}.${upstreamName}";
       description = "The ${upstreamName} package to use.";
     };
+
+    projectLocal = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Relocate this agent's per-user state (config, credentials, session
+        history) from the user's global home directory into the project tree
+        under $DEVENV_ROOT/.devenv/state/agents/<name>.
+
+        When true, a per-agent environment variable is set for the devenv
+        shell that points the agent at the project-local directory. The exact
+        variable depends on the agent (CLAUDE_CONFIG_DIR for claude,
+        CODEX_HOME for codex, GEMINI_CLI_HOME for gemini). This moves
+        everything the agent stores, including user-level config such as
+        ~/.claude/CLAUDE.md or ~/.codex/config.toml — not just cache.
+
+        Useful for multi-account setups, ephemeral CI environments, and
+        repos that need fully reproducible agent state.
+
+        Not yet supported for opencode or pi; setting it to true for those
+        agents is an evaluation error.
+      '';
+    };
   };
 
   agents = {
