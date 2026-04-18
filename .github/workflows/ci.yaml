@@ -21,6 +21,8 @@ jobs:
         uses: cachix/install-nix-action@616559265b40713947b9c190a8ff4b507b5df49b # v31.10.4
         with:
           github_access_token: ${{ github.token }}
+          extra_nix_config: |
+            accept-flake-config = true
 
       - name: Configure cachix
         uses: cachix/cachix-action@1eb2ef646ac0255473d23a5907ad7b04ce94065c # v17
@@ -29,9 +31,7 @@ jobs:
 
       - name: Install devenv
         shell: bash
-        run: nix profile add --accept-flake-config github:cachix/devenv/latest#devenv
-        env:
-          NIX_CONFIG: "accept-flake-config = true"
+        run: nix profile add github:cachix/devenv/latest#devenv
 
       - name: Run flake checks
         run: nix flake check
@@ -48,6 +48,8 @@ jobs:
         uses: cachix/install-nix-action@616559265b40713947b9c190a8ff4b507b5df49b # v31.10.4
         with:
           github_access_token: ${{ github.token }}
+          extra_nix_config: |
+            accept-flake-config = true
 
       - name: Configure cachix
         uses: cachix/cachix-action@1eb2ef646ac0255473d23a5907ad7b04ce94065c # v17
@@ -56,9 +58,7 @@ jobs:
 
       - name: Install devenv
         shell: bash
-        run: nix profile add --accept-flake-config github:cachix/devenv/latest#devenv
-        env:
-          NIX_CONFIG: "accept-flake-config = true"
+        run: nix profile add github:cachix/devenv/latest#devenv
 
       - name: Build example shell
         working-directory: examples/default
@@ -76,6 +76,8 @@ jobs:
         uses: cachix/install-nix-action@616559265b40713947b9c190a8ff4b507b5df49b # v31.10.4
         with:
           github_access_token: ${{ github.token }}
+          extra_nix_config: |
+            accept-flake-config = true
 
       - name: Configure cachix
         uses: cachix/cachix-action@1eb2ef646ac0255473d23a5907ad7b04ce94065c # v17
@@ -84,9 +86,7 @@ jobs:
 
       - name: Install devenv
         shell: bash
-        run: nix profile add --accept-flake-config github:cachix/devenv/latest#devenv
-        env:
-          NIX_CONFIG: "accept-flake-config = true"
+        run: nix profile add github:cachix/devenv/latest#devenv
 
       - name: Build example shell
         working-directory: examples/project-local
@@ -124,6 +124,8 @@ jobs:
         uses: cachix/install-nix-action@616559265b40713947b9c190a8ff4b507b5df49b # v31.10.4
         with:
           github_access_token: ${{ github.token }}
+          extra_nix_config: |
+            accept-flake-config = true
 
       - name: Configure cachix
         uses: cachix/cachix-action@1eb2ef646ac0255473d23a5907ad7b04ce94065c # v17
@@ -132,9 +134,7 @@ jobs:
 
       - name: Install devenv
         shell: bash
-        run: nix profile add --accept-flake-config github:cachix/devenv/latest#devenv
-        env:
-          NIX_CONFIG: "accept-flake-config = true"
+        run: nix profile add github:cachix/devenv/latest#devenv
 
       - name: Assert build fails with expected assertion message
         working-directory: examples/project-local-unsupported
