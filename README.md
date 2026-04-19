@@ -18,9 +18,6 @@ inputs:
     url: github:cachix/devenv-nixpkgs/rolling
   llm-agents:
     url: github:numtide/llm-agents.nix
-    inputs:
-      nixpkgs:
-        follows: nixpkgs
   devenv-agents:
     url: github:sagikazarmark/devenv-agents
 imports:
@@ -30,6 +27,13 @@ imports:
 > [!IMPORTANT]
 > `llm-agents` must be declared in your own `devenv.yaml`.
 > devenv does not resolve it transitively from this module's flake.
+
+> [!NOTE]
+> Don't point `llm-agents.inputs.nixpkgs` at your own `nixpkgs` via `follows`.
+> [Upstream recommends against it](https://github.com/numtide/llm-agents.nix#using-nix-flakes-recommended):
+> `llm-agents.nix` tracks `nixpkgs-unstable`, so a stable channel (e.g. `nixos-25.05`)
+> will eventually break, and overriding the input invalidates the pre-built binaries
+> in their cache, forcing a source build.
 
 Then enable the agents you want in `devenv.nix`:
 
